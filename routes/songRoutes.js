@@ -1,6 +1,6 @@
 const multer = require("multer");
 
-var storage = multer.diskStorage({
+const storage = multer.diskStorage({
 	destination: function (req, file, cb) {
 		cb(null, './uploads/');
 	},
@@ -9,16 +9,24 @@ var storage = multer.diskStorage({
 	}
 });
 
-var upload = multer({ storage:  storage }).single('songimage');
+const fileFilter = (req, file, cb) => {
+	if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+		cb(null, true);
+	} else {
+		cb(null, false);
+	}
+}
+
+const upload = multer({ storage:  storage, fileFilter: fileFilter }).single('songimage');
 
 uploadSongImage = (req, res, next) => {
-	upload(req, res, function (err) {
-		if (err instanceof multer.MulterError) {
-			return res.status(500).send(err);
-		} else if (err) {
-			return res.status(500).send(err);
+	upload(req, res, function (error) {
+		if (error instanceof multer.MulterError) {
+			return res.status(500).send({"error": error});
+		} else if (error) {
+			return res.status(500).send({"error": error});
 		} else {
-			return res.status(200).send(req.file);
+			return res.status(200).send({"file": req.file, "message": `${req.file.filename} uploaded successfully`});
 		}
 	});
 }
